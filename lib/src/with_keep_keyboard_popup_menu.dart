@@ -15,27 +15,21 @@ const double _kMenuVerticalPadding = 8.0;
 
 /// Used to build the widget that is going to open the popup menu. This widget
 /// can call [openPopup] to open the popup menu.
-typedef Widget ChildBuilder(
-  BuildContext context,
-  OpenPopupFn openPopup,
-);
+typedef Widget ChildBuilder(BuildContext context,
+    OpenPopupFn openPopup,);
 
 /// Used to build the custom widget inside the popup menu. The widget can call
 /// [openPopup] to open the popup menu. [WithKeepKeyboardPopupMenu] will then
 /// wrap your widget in a [ListView].
-typedef Widget MenuBuilder(
-  BuildContext context,
-  ClosePopupFn closePopup,
-);
+typedef Widget MenuBuilder(BuildContext context,
+    ClosePopupFn closePopup,);
 
 /// Used to build the item list inside the popup menu. Widgets can call
 /// [openPopup] to open the popup menu. [WithKeepKeyboardPopupMenu] will then
 /// wrap this list in a [ListView] with vertical padding of
 /// [_kMenuVerticalPadding].
-typedef List<KeepKeyboardPopupMenuItem> MenuItemBuilder(
-  BuildContext context,
-  ClosePopupFn closePopup,
-);
+typedef List<KeepKeyboardPopupMenuItem> MenuItemBuilder(BuildContext context,
+    ClosePopupFn closePopup,);
 
 /// Function type to open the popup menu, returns a future that resolves when
 /// the opening animation stops.
@@ -94,8 +88,9 @@ class WithKeepKeyboardPopupMenu extends StatefulWidget {
     this.calculatePopupPosition = _defaultCalculatePopupPosition,
     this.backgroundBuilder = _defaultBackgroundBuilder,
     Key? key,
-  })  : assert((menuBuilder == null) != (menuItemBuilder == null),
-            'You can only pass one of [menuBuilder] and [menuItemBuilder].'),
+  })
+      : assert((menuBuilder == null) != (menuItemBuilder == null),
+  'You can only pass one of [menuBuilder] and [menuItemBuilder].'),
         super(key: key);
 
   @override
@@ -111,26 +106,35 @@ class WithKeepKeyboardPopupMenuState extends State<WithKeepKeyboardPopupMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (popupState == PopupMenuState.OPENED ||
-            popupState == PopupMenuState.OPENING) {
-          closePopupMenu();
-          return false;
-        } else {
-          return true;
-        }
-      },
-      child: Container(
-        key: _childKey,
-        child: widget.childBuilder(context, openPopupMenu),
-      ),
+    bool preventPop = popupState == PopupMenuState.OPENED ||
+        popupState == PopupMenuState.OPENING;
+
+    Container mainView = Container(
+      key: _childKey,
+      child: widget.childBuilder(context, openPopupMenu),
     );
+    if (preventPop) {
+      return WillPopScope(
+          onWillPop: () async {
+            if (popupState == PopupMenuState.OPENED ||
+                popupState == PopupMenuState.OPENING) {
+              closePopupMenu();
+              return false;
+            } else {
+              return true;
+            }
+          },
+          child: mainView
+      );
+    }
+    else {
+      return mainView;
+    }
   }
 
   Rect _getChildRect() {
     final childRenderBox =
-        _childKey.currentContext!.findRenderObject() as RenderBox;
+    _childKey.currentContext!.findRenderObject() as RenderBox;
     final childSize = childRenderBox.size;
     final childPos = childRenderBox.localToGlobal(Offset.zero);
     return Rect.fromLTWH(
@@ -241,8 +245,8 @@ Widget _defaultBackgroundBuilder(BuildContext context, Widget child) {
   );
 }
 
-Offset _defaultCalculatePopupPosition(
-    Size menuSize, Rect overlayRect, Rect buttonRect) {
+Offset _defaultCalculatePopupPosition(Size menuSize, Rect overlayRect,
+    Rect buttonRect) {
   double y = buttonRect.top;
 
   double x;
